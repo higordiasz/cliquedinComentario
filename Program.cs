@@ -243,9 +243,17 @@ namespace CliquedinComentario
                                     }
                                     else
                                     {
-                                        Console.WriteLine(seguir.Response);
-                                        await Task.Delay(TimeSpan.FromSeconds(20));
-                                        return;
+                                        if (seguir.Status == 3)
+                                        {
+                                            Console.WriteLine(seguir.Response);
+                                            await Task.Delay(TimeSpan.FromSeconds(3));
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine(seguir.Response);
+                                            await Task.Delay(TimeSpan.FromSeconds(20));
+                                            return;
+                                        }
                                     }
                                 }
                                 break;
@@ -293,9 +301,17 @@ namespace CliquedinComentario
                                     }
                                     else
                                     {
-                                        Console.WriteLine(curtir.Response);
-                                        await Task.Delay(TimeSpan.FromSeconds(20));
-                                        return;
+                                        if (curtir.Status == 3)
+                                        {
+                                            Console.WriteLine(curtir.Response);
+                                            await Task.Delay(TimeSpan.FromSeconds(3));
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine(curtir.Response);
+                                            await Task.Delay(TimeSpan.FromSeconds(20));
+                                            return;
+                                        }
                                     }
                                 }
                                 break;
