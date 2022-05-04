@@ -13,6 +13,8 @@ using Instagram.Controllers.Profile;
 using CliquedinComentario.Models.Retorno;
 using CliquedinComentario.Models.Contas;
 using S22.Imap;
+using CliquedinAPI;
+using CliquedinAPI.Controllers;
 
 namespace CliquedinComentario.Helpers
 {
@@ -58,7 +60,7 @@ namespace CliquedinComentario.Helpers
             "ronaldinho",
         };
 
-        public async static Task<Retorno> RelaxSystem (this BotAccounts conta, int minutos)
+        public async static Task<Retorno> RelaxSystem(this BotAccounts conta, int minutos, Cliquedin cliquedin)
         {
             int descanso = minutos / 3;
             Retorno ret = new()
@@ -70,15 +72,16 @@ namespace CliquedinComentario.Helpers
             {
                 Random rand = new();
                 string celebridade = _famosos[rand.Next(0, _famosos.Length - 1)];
-                for (int i = 0; i< 3; i++)
+                for (int i = 0; i < 3; i++)
                 {
-                    _ = await conta.SeeStoryByUsername(celebridade);
+                    _ = await conta.SeeStoryByUsername(celebridade, cliquedin);
                     await Task.Delay(TimeSpan.FromMinutes(descanso));
                     celebridade = _famosos[rand.Next(0, _famosos.Length - 1)];
                 }
                 ret.Status = 1;
                 ret.Response = "Sucesso";
-            } catch
+            }
+            catch
             {
                 ret.Status = -1;
                 ret.Response = "Error";
@@ -86,7 +89,7 @@ namespace CliquedinComentario.Helpers
             return ret;
         }
 
-        public async static Task<Retorno> FollowUser (this BotAccounts conta, string username)
+        public async static Task<Retorno> FollowUser(this BotAccounts conta, string username, Cliquedin cliquedin)
         {
             Retorno ret = new()
             {
@@ -104,8 +107,9 @@ namespace CliquedinComentario.Helpers
             {
                 if (follow.Status == -2)
                 {
-                    return await conta.CheckChallenge();
-                } else
+                    return await conta.CheckChallenge(cliquedin);
+                }
+                else
                 {
                     ret.Status = follow.Status;
                     ret.Response = follow.Response;
@@ -113,8 +117,8 @@ namespace CliquedinComentario.Helpers
                 }
             }
         }
-    
-        public async static Task<Retorno> LikeMediaShortCode (this BotAccounts conta, string shotcode)
+
+        public async static Task<Retorno> LikeMediaShortCode(this BotAccounts conta, string shotcode, Cliquedin cliquedin)
         {
             Retorno ret = new()
             {
@@ -132,7 +136,7 @@ namespace CliquedinComentario.Helpers
             {
                 if (follow.Status == -2)
                 {
-                    return await conta.CheckChallenge();
+                    return await conta.CheckChallenge(cliquedin);
                 }
                 else
                 {
@@ -143,7 +147,7 @@ namespace CliquedinComentario.Helpers
             }
         }
 
-        public async static Task<Retorno> CommentMediaShotcode (this BotAccounts conta, string shortcode, string comment)
+        public async static Task<Retorno> CommentMediaShotcode(this BotAccounts conta, string shortcode, string comment, Cliquedin cliquedin)
         {
             Retorno ret = new()
             {
@@ -161,7 +165,7 @@ namespace CliquedinComentario.Helpers
             {
                 if (follow.Status == -2)
                 {
-                    return await conta.CheckChallenge();
+                    return await conta.CheckChallenge(cliquedin);
                 }
                 else
                 {
@@ -172,7 +176,7 @@ namespace CliquedinComentario.Helpers
             }
         }
 
-        public async static Task<Retorno> SeeStoryByUsername (this BotAccounts conta, string username)
+        public async static Task<Retorno> SeeStoryByUsername(this BotAccounts conta, string username, Cliquedin cliquedin)
         {
             Retorno ret = new()
             {
@@ -191,7 +195,7 @@ namespace CliquedinComentario.Helpers
             {
                 if (follow.Status == -2)
                 {
-                    return await conta.CheckChallenge();
+                    return await conta.CheckChallenge(cliquedin);
                 }
                 else
                 {
@@ -202,7 +206,7 @@ namespace CliquedinComentario.Helpers
             }
         }
 
-        public async static Task<Retorno> Login (this BotAccounts conta)
+        public async static Task<Retorno> Login(this BotAccounts conta, Cliquedin cliquedin)
         {
             Retorno ret = new()
             {
@@ -220,17 +224,21 @@ namespace CliquedinComentario.Helpers
             {
                 if (login.Status == -2)
                 {
-                    return await conta.CheckChallenge();
+                    return await conta.CheckChallenge(cliquedin);
                 }
                 else
                 {
+                    if (ret.Status == -996)
+                        await cliquedin.SendAccountBlock(conta.conta.Username, "UsuarioOuSenhaErrada");
+                    if (ret.Status == -997)
+                        await cliquedin.SendAccountBlock(conta.conta.Username, "BANIDA");
                     ret.Status = login.Status;
                     ret.Response = login.Response;
                     return ret;
                 }
             }
         }
-    
+
         public async static Task<bool> IsLogged(this BotAccounts conta)
         {
             var profile = await conta.insta.CheckLogin();
@@ -238,7 +246,7 @@ namespace CliquedinComentario.Helpers
             return false;
         }
 
-        public static async Task<RetornoData> GetDataFromPerfil(this BotAccounts conta)
+        public static async Task<RetornoData> GetDataFromPerfil(this BotAccounts conta, Cliquedin cliquedin)
         {
             RetornoData ret = new()
             {
@@ -257,7 +265,7 @@ namespace CliquedinComentario.Helpers
             {
                 if (login.Status == -2)
                 {
-                    var d = await conta.CheckChallenge();
+                    var d = await conta.CheckChallenge(cliquedin);
                     ret.Response = d.Response;
                     ret.Status = d.Status;
                     return ret;
@@ -271,7 +279,7 @@ namespace CliquedinComentario.Helpers
             }
         }
 
-        public static async Task<Retorno> CheckChallenge(this BotAccounts conta)
+        public static async Task<Retorno> CheckChallenge(this BotAccounts conta, Cliquedin cliquedin)
         {
             Retorno ret = new()
             {
@@ -287,43 +295,52 @@ namespace CliquedinComentario.Helpers
                     case "AcknowledgeForm":
                         ret.Status = 7;
                         ret.Response = "Bloqueio: SMS";
+                        await cliquedin.SendAccountBlock(conta.conta.Username, "AcknowledgeForm-SMS");
                         return ret;
                     case "UFACWWWBloksScreen":
                         ret.Status = 5;
                         ret.Response = "Bloqueio: SMS";
+                        await cliquedin.SendAccountBlock(conta.conta.Username, "UFACWWWBloksScreen-SMS");
                         return ret;
                     case "ReviewLoginForm":
                         ret.Status = 7;
                         ret.Response = "Bloqueio: SMS";
+                        await cliquedin.SendAccountBlock(conta.conta.Username, "ReviewLoginForm-SMS");
                         return ret;
                     case "SelfieCaptchaChallengeForm":
                         ret.Status = 11;
                         ret.Response = "Bloqueio: Selfie";
+                        await cliquedin.SendAccountBlock(conta.conta.Username, "SelfieCaptchaChallengeForm-SMS");
                         return ret;
                     case "SelectContactPointRecoveryForm":
                         ret.Status = 7;
                         ret.Response = "Bloqueio: SMS";
+                        await cliquedin.SendAccountBlock(conta.conta.Username, "SelectContactPointRecoveryForm-SMS");
                         return ret;
                     case "RecaptchaChallengeForm":
                         ret.Status = 5;
                         ret.Response = "Bloqueio: Recaptcha e SMS";
+                        await cliquedin.SendAccountBlock(conta.conta.Username, "RecaptchaChallengeForm-SMS");
                         return ret;
                     case "IeForceSetNewPasswordForm":
                         ret.Status = 6;
                         ret.Response = "Bloqueio: Troca de senha";
+                        await cliquedin.SendAccountBlock(conta.conta.Username, "IeForceSetNewPasswordForm-SMS");
                         return ret;
                     case "SubmitPhoneNumberForm":
                         ret.Status = 5;
                         ret.Response = "Bloqueio: SMS";
+                        await cliquedin.SendAccountBlock(conta.conta.Username, "SubmitPhoneNumberForm-SMS");
                         return ret;
                     case "EscalationChallengeInformationalForm":
                         var res = await conta.insta.SelectChoiceChallenge(challenge, "0", challenge.Url);
                         if (res.Status == 1)
-                            return await conta.Login();
+                            return await conta.Login(cliquedin);
                         else
                         {
                             ret.Status = 8;
                             ret.Response = "Bloqueio: Foto";
+                            await cliquedin.SendAccountBlock(conta.conta.Username, "EscalationChallengeInformationalForm-FOTO");
                         }
                         return ret;
                     case "SelectVerificationMethodForm":
@@ -368,39 +385,46 @@ namespace CliquedinComentario.Helpers
                                             {
                                                 ret.Status = 7;
                                                 ret.Response = "Não foi possivel realizar login na conta...";
+                                                await cliquedin.SendAccountBlock(conta.conta.Username, "SelectVerificationMethodForm-SMSEMAIL");
                                                 return ret;
                                             }
                                         }
                                         else
                                         {
                                             Console.WriteLine("Não foi possivel verificar a conta...");
+                                            await cliquedin.SendAccountBlock(conta.conta.Username, "SelectVerificationMethodForm-SMSEMAIL");
                                             return ret;
                                         }
                                     }
                                     else
                                     {
                                         Console.WriteLine("Não foi possivel cerificar a conta do instagram..");
+                                        await cliquedin.SendAccountBlock(conta.conta.Username, "SelectVerificationMethodForm-SMSEMAIL");
                                         return ret;
                                     }
                                 }
                                 else
                                 {
                                     Console.WriteLine("Não foi possivel conectar no email...");
+                                    await cliquedin.SendAccountBlock(conta.conta.Username, "SelectVerificationMethodForm-SMSEMAIL");
                                     return ret;
                                 }
                             }
                             else
                             {
+                                await cliquedin.SendAccountBlock(conta.conta.Username, "SelectVerificationMethodForm-SMSEMAIL");
                                 return ret;
                             }
                         }
                         else
                         {
+                            await cliquedin.SendAccountBlock(conta.conta.Username, "SelectVerificationMethodForm-SMSEMAIL");
                             return ret;
                         }
                     default:
                         ret.Status = 9;
                         ret.Response = "Bloqueio: " + challenge.Response;
+                        await cliquedin.SendAccountBlock(conta.conta.Username, $"{challenge.Response}-SMS");
                         return ret;
                 }
             }
@@ -408,6 +432,7 @@ namespace CliquedinComentario.Helpers
             {
                 ret.Status = -2;
                 ret.Response = "Conta com bloqueio de SMS";
+                await cliquedin.SendAccountBlock(conta.conta.Username, "ErroIdentificar");
                 return ret;
             }
         }
