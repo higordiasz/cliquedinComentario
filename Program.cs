@@ -15,7 +15,7 @@ using CliquedinComentario.Models.Proxy;
 using System.Threading.Tasks;
 using System.IO;
 using CliquedinComentario.Helpers;
-
+using System.Collections.Generic;
 
 namespace CliquedinComentario
 {
@@ -217,7 +217,7 @@ namespace CliquedinComentario
                                     {
                                         Console.WriteLine("Sucesso ao recuperar informações...");
                                         Console.WriteLine("Registrando a conta na cliquedin...");
-                                        var cad = await Plat.RegisteAccount(conta.Conta.Username, data.Gender, data.Response);
+                                        var cad = await Plat.RegisteAccount(conta.Conta.Username, data.Gender, data.Response, await Conta.LastPostDate(Plat));
                                         if (cad)
                                         {
                                             Console.WriteLine("Sucesso ao cadastrar a conta...");
@@ -277,6 +277,7 @@ namespace CliquedinComentario
 
         static async Task RodarConta(BotAccounts conta)
         {
+            Dictionary<string, int> waitValues = await Plat.GetMinMax();
             SaveDate(conta.conta.Username.ToLower(), UserAgent, conta.insta.CookieString(), conta.insta.GetClaim());
             try
             {
@@ -545,7 +546,9 @@ namespace CliquedinComentario
                             default:
                                 break;
                         }
-                        int delay = rand.Next(150, 400);
+                        int min = waitValues.GetValueOrDefault("min") > 0 ? waitValues.GetValueOrDefault("min") : 10;
+                        int max = waitValues.GetValueOrDefault("max") > min ? waitValues.GetValueOrDefault("max") : min + 30;
+                        int delay = rand.Next(min, max);
                         Console.WriteLine($"Aguardando {delay} segundos para continuar...");
                         await Task.Delay(TimeSpan.FromSeconds(delay));
                     }
