@@ -389,10 +389,27 @@ namespace CliquedinComentario
                                         }
                                         else
                                         {
-                                            Console.WriteLine(seguir.Response);
-                                            Console.WriteLine("Pulando a tarefa...");
-                                            await Plat.JumpTask(taskID, conta.conta.Username);
-                                            await Plat.SendPrivateOrNotExistTask(taskID);
+                                            if (seguir.Status == -992)
+                                            {
+                                                Console.WriteLine(seguir.Response);
+                                                Console.WriteLine("Tentando relogar na conta ...");
+                                                conta.insta = new(conta.conta.Username.ToLower(), conta.conta.Password, $"http://{proxy.IP}:{proxy.Port}/", proxy.User, proxy.Pass);
+                                                //conta.insta = new(conta.conta.Username.ToLower(), conta.conta.Password, $"http://gate.dc.smartproxy.com:20000/", "sp51276865", "20180102");
+                                                var login = await conta.Login(Plat);
+                                                if (login.Status == 1)
+                                                {
+                                                    Console.WriteLine("Login realizado com sucesso...");
+                                                    Console.WriteLine("Continuando com as tarefas...");
+                                                    SaveDate(conta.conta.Username.ToLower(), UserAgent, conta.insta.CookieString(), conta.insta.GetClaim());
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("Não foi possivel realizar o login na conta...");
+                                                    Console.WriteLine(login.Status);
+                                                    await Task.Delay(TimeSpan.FromSeconds(3));
+                                                    return;
+                                                }
+                                            }
                                         }
                                     }
                                     else
