@@ -79,10 +79,10 @@ namespace CliquedinComentario
                             {
                                 Console.WriteLine("Erro ao puxar proxy...");
                             }
-                            if (HaveCookie(conta.Conta.Username))
+                            string[] data = GetSaveData(Plat, conta.Conta.Username.ToLower());
+                            if (data != null)
                             {
                                 Console.WriteLine("Recuperando cookie anterior...");
-                                string[] data = GetSaveData(conta.Conta.Username.ToLower());
                                 if (proxy == null)
                                 {
                                     Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password, data[0], data[1]);
@@ -241,12 +241,12 @@ namespace CliquedinComentario
                                     {
                                         Console.WriteLine("Não foi possivel localizar a conta na cliquedin...");
                                         Console.WriteLine("Buscando informações da conta...");
-                                        var data = await Conta.GetDataFromPerfil(Plat);
-                                        if (data.Status == 1)
+                                        var data2 = await Conta.GetDataFromPerfil(Plat);
+                                        if (data2.Status == 1)
                                         {
                                             Console.WriteLine("Sucesso ao recuperar informações...");
                                             Console.WriteLine("Registrando a conta na cliquedin...");
-                                            var cad = await Plat.RegisteAccount(conta.Conta.Username, data.Gender, data.Response, await Conta.LastPostDate(Plat));
+                                            var cad = await Plat.RegisteAccount(conta.Conta.Username, data2.Gender, data2.Response, await Conta.LastPostDate(Plat));
                                             if (cad)
                                             {
                                                 Console.WriteLine("Sucesso ao cadastrar a conta...");
@@ -273,7 +273,7 @@ namespace CliquedinComentario
                                         }
                                         else
                                         {
-                                            Console.Write(data.Response);
+                                            Console.Write(data2.Response);
                                             await Task.Delay(TimeSpan.FromSeconds(15));
                                             account = false;
                                         }
@@ -320,7 +320,8 @@ namespace CliquedinComentario
         static async Task RodarConta(BotAccounts conta)
         {
             Dictionary<string, int> waitValues = await Plat.GetMinMax();
-            SaveDate(conta.conta.Username.ToLower(), UserAgent, conta.insta.CookieString(), conta.insta.GetClaim());
+            DeleteDate(Plat, conta.conta.Username.ToLower());
+            SaveDate(Plat, conta.conta.Username.ToLower(), UserAgent, conta.insta.CookieString(), conta.insta.GetClaim());
             try
             {
                 Random rand = new();
@@ -400,14 +401,15 @@ namespace CliquedinComentario
                                                 {
                                                     Console.WriteLine("Login realizado com sucesso...");
                                                     Console.WriteLine("Continuando com as tarefas...");
-                                                    SaveDate(conta.conta.Username.ToLower(), UserAgent, conta.insta.CookieString(), conta.insta.GetClaim());
+                                                    DeleteDate(Plat, conta.conta.Username.ToLower());
+                                                    SaveDate(Plat, conta.conta.Username.ToLower(), UserAgent, conta.insta.CookieString(), conta.insta.GetClaim());
                                                 }
                                                 else
                                                 {
                                                     Console.WriteLine("Não foi possivel realizar o login na conta...");
                                                     Console.WriteLine(login.Status);
                                                     await Task.Delay(TimeSpan.FromSeconds(3));
-                                                    DeleteDate(conta.conta.Username.ToLower());
+                                                    DeleteDate(Plat, conta.conta.Username.ToLower());
                                                     return;
                                                 }
                                             }
@@ -425,14 +427,14 @@ namespace CliquedinComentario
                                             await Plat.JumpTask(taskID, conta.conta.Username);
                                             await Task.Delay(TimeSpan.FromSeconds(3));
                                             await Plat.SendBlockTemp(conta.conta.Username);
-                                            DeleteDate(conta.conta.Username.ToLower());
+                                            DeleteDate(Plat, conta.conta.Username.ToLower());
                                             return;
                                         }
                                         else
                                         {
                                             Console.WriteLine(seguir.Response);
                                             await Task.Delay(TimeSpan.FromSeconds(20));
-                                            DeleteDate(conta.conta.Username.ToLower());
+                                            DeleteDate(Plat, conta.conta.Username.ToLower());
                                             return;
                                         }
                                     }
@@ -485,14 +487,15 @@ namespace CliquedinComentario
                                                 {
                                                     Console.WriteLine("Login realizado com sucesso...");
                                                     Console.WriteLine("Continuando com as tarefas...");
-                                                    SaveDate(conta.conta.Username.ToLower(), UserAgent, conta.insta.CookieString(), conta.insta.GetClaim());
+                                                    DeleteDate(Plat, conta.conta.Username.ToLower());
+                                                    SaveDate(Plat, conta.conta.Username.ToLower(), UserAgent, conta.insta.CookieString(), conta.insta.GetClaim());
                                                 }
                                                 else
                                                 {
                                                     Console.WriteLine("Não foi possivel realizar o login na conta...");
                                                     Console.WriteLine(login.Status);
                                                     await Task.Delay(TimeSpan.FromSeconds(3));
-                                                    DeleteDate(conta.conta.Username.ToLower());
+                                                    DeleteDate(Plat, conta.conta.Username.ToLower());
                                                     return;
                                                 }
                                             }
@@ -506,14 +509,14 @@ namespace CliquedinComentario
                                             await Plat.JumpTask(taskID, conta.conta.Username);
                                             await Task.Delay(TimeSpan.FromSeconds(3));
                                             await Plat.SendBlockTemp(conta.conta.Username);
-                                            DeleteDate(conta.conta.Username.ToLower());
+                                            DeleteDate(Plat, conta.conta.Username.ToLower());
                                             return;
                                         }
                                         else
                                         {
                                             Console.WriteLine(curtir.Response);
                                             await Task.Delay(TimeSpan.FromSeconds(20));
-                                            DeleteDate(conta.conta.Username.ToLower());
+                                            DeleteDate(Plat, conta.conta.Username.ToLower());
                                             return;
                                         }
                                     }
@@ -565,7 +568,7 @@ namespace CliquedinComentario
                                     {
                                         Console.WriteLine(stories.Response);
                                         await Task.Delay(TimeSpan.FromSeconds(20));
-                                        DeleteDate(conta.conta.Username.ToLower());
+                                        DeleteDate(Plat, conta.conta.Username.ToLower());
                                         return;
                                     }
                                 }
@@ -626,7 +629,7 @@ namespace CliquedinComentario
                                     {
                                         Console.WriteLine(comentar.Response);
                                         await Task.Delay(TimeSpan.FromSeconds(20));
-                                        DeleteDate(conta.conta.Username.ToLower());
+                                        DeleteDate(Plat, conta.conta.Username.ToLower());
                                         return;
                                     }
                                 }
@@ -659,8 +662,9 @@ namespace CliquedinComentario
             return;
         }
 
-        static string[] GetSaveData(string username)
+        static string[] GetSaveData(Cliquedin cliquedin, string username)
         {
+            /*
             string dir = Directory.GetCurrentDirectory();
             try
             {
@@ -676,11 +680,39 @@ namespace CliquedinComentario
             if (File.Exists($@"{dir}/Conta/{username}-claim.arka"))
                 retorno[2] = File.ReadAllText($@"{dir}/Conta/{username}-claim.arka");
             return retorno;
+            */
+            try
+            {
+                string[] retorno = new string[2];
+                string cookie = cliquedin.GetCookie(username).Result;
+                if (!String.IsNullOrEmpty(cookie))
+                {
+                    string[] arr = cookie.Split(";");
+                    string cookieToReturn = "";
+                    for (int i = 0; i < arr.Length; i++)
+                    {
+                        if (i != (arr.Length - 1))
+                        {
+                            cookieToReturn += arr[i];
+                            if (i < (arr.Length - 1))
+                                cookieToReturn += ";";
+                        }
+                    }
+                    retorno[0] = cookieToReturn;
+                    retorno[1] = arr[^1];
+                    return retorno;
+                }
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
-        static void SaveDate(string username, string ua, string cookie, string claim)
+        static void SaveDate(Cliquedin cliquedin, string username, string ua, string cookie, string claim)
         {
-            string dir = Directory.GetCurrentDirectory();
+            /*string dir = Directory.GetCurrentDirectory();
             try
             {
                 if (!Directory.Exists($@"{dir}/Conta"))
@@ -696,10 +728,22 @@ namespace CliquedinComentario
             if (File.Exists($@"{dir}/Conta/{username}-claim.arka"))
                 File.Delete($@"{dir}/Conta/{username}-claim.arka");
             File.WriteAllText($@"{dir}/Conta/{username}-claim.arka", claim);
+            */
+            try
+            {
+                string cookieToSend = cookie + ";" + claim;
+                cliquedin.SaveCookie(username, cookieToSend);
+                return;
+            }
+            catch
+            {
+                return;
+            }
         }
 
-        static void DeleteDate(string username)
+        static void DeleteDate(Cliquedin cliquedin, string username)
         {
+            /*
             string dir = Directory.GetCurrentDirectory();
             try
             {
@@ -713,14 +757,16 @@ namespace CliquedinComentario
                 File.Delete($@"{dir}/Conta/{username}-ua.arka");
             if (File.Exists($@"{dir}/Conta/{username}-claim.arka"))
                 File.Delete($@"{dir}/Conta/{username}-claim.arka");
-        }
-
-        static bool HaveCookie(string username)
-        {
-            var dir = Directory.GetCurrentDirectory();
-            if (File.Exists($@"{dir}/Conta/{username}.arka") && File.Exists($@"{dir}/Conta/{username}-ua.arka") && File.Exists($@"{dir}/Conta/{username}-claim.arka"))
-                return true;
-            return false;
+            */
+            try
+            {
+                cliquedin.DeleteCookie(username);
+                return;
+            }
+            catch
+            {
+                return;
+            }
         }
     }
 }
