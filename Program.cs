@@ -48,7 +48,6 @@ namespace CliquedinComentario
                 CliquedinAPI.Models.Retorno.ContaRetorno conta = null;
                 while (true)
                 {
-                    account = false;
                     try
                     {
                         UserAgent = uaController.GetUa();
@@ -87,41 +86,61 @@ namespace CliquedinComentario
                                     Console.WriteLine("Recuperando cookie anterior...");
                                     if (proxy == null)
                                     {
-                                        Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password, data[0], data[1]);
-                                        bool checkUserAgent = true;
-                                        while (checkUserAgent)
+                                        try
                                         {
-                                            try
+                                            Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password, data[0], data[1]);
+                                            //Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password, data[0], data[1], $"http://gate.dc.smartproxy.com:20000/", "sp51276865", "20180102");
+                                            bool checkUserAgent = true;
+                                            while (checkUserAgent)
                                             {
-                                                i.SetuserAgent(UserAgent);
-                                                checkUserAgent = false;
+                                                try
+                                                {
+                                                    i.SetuserAgent(UserAgent);
+                                                    checkUserAgent = false;
+                                                }
+                                                catch
+                                                {
+                                                    UserAgent = uaController.GetUa();
+                                                }
                                             }
-                                            catch
-                                            {
-                                                UserAgent = uaController.GetUa();
-                                            }
+                                            Conta.insta = i;
+                                            logada = await Conta.IsLogged();
                                         }
-                                        Conta.insta = i;
-                                        logada = await Conta.IsLogged();
+                                        catch
+                                        {
+                                            Console.WriteLine("Erro ao criar instancia do bot ... (Proxy)");
+                                            Console.WriteLine("Tentando novamente...");
+                                            await Task.Delay(TimeSpan.FromSeconds(5));
+                                        }
                                     }
                                     else
                                     {
-                                        Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password, data[0], data[1], $"http://{proxy.IP}:{proxy.Port}/", proxy.User, proxy.Pass);
-                                        bool checkUserAgent = true;
-                                        while (checkUserAgent)
+                                        try
                                         {
-                                            try
+                                            Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password, data[0], data[1], $"http://{proxy.IP}:{proxy.Port}/", proxy.User, proxy.Pass);
+                                            //Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password, data[0], data[1], $"http://gate.dc.smartproxy.com:20000/", "sp51276865", "20180102");
+                                            bool checkUserAgent = true;
+                                            while (checkUserAgent)
                                             {
-                                                i.SetuserAgent(UserAgent);
-                                                checkUserAgent = false;
+                                                try
+                                                {
+                                                    i.SetuserAgent(UserAgent);
+                                                    checkUserAgent = false;
+                                                }
+                                                catch
+                                                {
+                                                    UserAgent = uaController.GetUa();
+                                                }
                                             }
-                                            catch
-                                            {
-                                                UserAgent = uaController.GetUa();
-                                            }
+                                            Conta.insta = i;
+                                            logada = await Conta.IsLogged();
                                         }
-                                        Conta.insta = i;
-                                        logada = await Conta.IsLogged();
+                                        catch
+                                        {
+                                            Console.WriteLine("Erro ao criar instancia do bot ... (Proxy)");
+                                            Console.WriteLine("Tentando novamente...");
+                                            await Task.Delay(TimeSpan.FromSeconds(5));
+                                        }
                                     }
                                 }
                                 if (!logada)
@@ -133,102 +152,121 @@ namespace CliquedinComentario
                                         Console.WriteLine($"Username: {conta.Conta.Username} | Password: {conta.Conta.Password}");
                                         if (proxy == null)
                                         {
-                                            Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password);
-                                            bool checkUserAgent = true;
-                                            while (checkUserAgent)
+                                            try
                                             {
-                                                try
+                                                Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password);
+                                                bool checkUserAgent = true;
+                                                while (checkUserAgent)
                                                 {
-                                                    i.SetuserAgent(UserAgent);
-                                                    checkUserAgent = false;
-                                                }
-                                                catch
-                                                {
-                                                    UserAgent = uaController.GetUa();
-                                                }
-                                            }
-                                            Conta.insta = i;
-                                            var login = await Conta.Login(Plat);
-                                            if (login.Status == 1)
-                                            {
-                                                Console.WriteLine("Login realizado com sucesso...");
-                                                logada = true;
-                                                leave = true;
-                                            }
-                                            else
-                                            {
-                                                if (login.Status == -995)
-                                                {
-                                                    Console.WriteLine("Erro ao logar...");
-                                                    Console.WriteLine(login.Response);
-                                                    Console.WriteLine("Buscando novo proxy...");
-                                                    await Task.Delay(TimeSpan.FromSeconds(25));
                                                     try
                                                     {
-                                                        proxy = ProxyHelper.LoadProxyFromCliquedin(Plat);
+                                                        i.SetuserAgent(UserAgent);
+                                                        checkUserAgent = false;
                                                     }
                                                     catch
                                                     {
-                                                        Console.WriteLine("Erro ao puxar proxy...");
+                                                        UserAgent = uaController.GetUa();
                                                     }
+                                                }
+                                                Conta.insta = i;
+                                                var login = await Conta.Login(Plat);
+                                                if (login.Status == 1)
+                                                {
+                                                    Console.WriteLine("Login realizado com sucesso...");
+                                                    logada = true;
+                                                    leave = true;
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Erro ao logar...");
-                                                    Console.WriteLine(login.Response);
-                                                    await Task.Delay(TimeSpan.FromSeconds(15));
-                                                    leave = true;
+                                                    if (login.Status == -995)
+                                                    {
+                                                        Console.WriteLine("Erro ao logar...");
+                                                        Console.WriteLine(login.Response);
+                                                        Console.WriteLine("Buscando novo proxy...");
+                                                        await Task.Delay(TimeSpan.FromSeconds(25));
+                                                        try
+                                                        {
+                                                            proxy = ProxyHelper.LoadProxyFromCliquedin(Plat);
+                                                        }
+                                                        catch
+                                                        {
+                                                            Console.WriteLine("Erro ao puxar proxy...");
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("Erro ao logar...");
+                                                        Console.WriteLine(login.Response);
+                                                        await Task.Delay(TimeSpan.FromSeconds(15));
+                                                        leave = true;
+                                                    }
                                                 }
+                                            }
+                                            catch
+                                            {
+                                                Console.WriteLine("Erro ao criar instancia do bot ... (Proxy)");
+                                                Console.WriteLine("Tentando novamente...");
+                                                await Task.Delay(TimeSpan.FromSeconds(5));
                                             }
                                         }
                                         else
                                         {
-                                            Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password, $"http://{proxy.IP}:{proxy.Port}/", proxy.User, proxy.Pass);
-                                            bool checkUserAgent = true;
-                                            while (checkUserAgent)
+                                            try
                                             {
-                                                try
+                                                Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password, $"http://{proxy.IP}:{proxy.Port}/", proxy.User, proxy.Pass);
+                                                //Insta i = new(conta.Conta.Username.ToLower(), conta.Conta.Password, $"http://gate.dc.smartproxy.com:20000/", "sp51276865", "20180102");
+                                                bool checkUserAgent = true;
+                                                while (checkUserAgent)
                                                 {
-                                                    i.SetuserAgent(UserAgent);
-                                                    checkUserAgent = false;
-                                                }
-                                                catch
-                                                {
-                                                    UserAgent = uaController.GetUa();
-                                                }
-                                            }
-                                            Conta.insta = i;
-                                            var login = await Conta.Login(Plat);
-                                            if (login.Status == 1)
-                                            {
-                                                Console.WriteLine("Login realizado com sucesso...");
-                                                logada = true;
-                                                leave = true;
-                                            }
-                                            else
-                                            {
-                                                if (login.Status == -995)
-                                                {
-                                                    Console.WriteLine("Erro ao logar...");
-                                                    Console.WriteLine(login.Response);
-                                                    Console.WriteLine("Buscando novo proxy...");
-                                                    await Task.Delay(TimeSpan.FromSeconds(25));
                                                     try
                                                     {
-                                                        proxy = ProxyHelper.LoadProxyFromCliquedin(Plat);
+                                                        i.SetuserAgent(UserAgent);
+                                                        checkUserAgent = false;
                                                     }
                                                     catch
                                                     {
-                                                        Console.WriteLine("Erro ao puxar proxy...");
+                                                        UserAgent = uaController.GetUa();
                                                     }
+                                                }
+                                                Conta.insta = i;
+                                                var login = await Conta.Login(Plat);
+                                                if (login.Status == 1)
+                                                {
+                                                    Console.WriteLine("Login realizado com sucesso...");
+                                                    logada = true;
+                                                    leave = true;
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("Erro ao logar...");
-                                                    Console.WriteLine(login.Response);
-                                                    await Task.Delay(TimeSpan.FromSeconds(15));
-                                                    leave = true;
+                                                    if (login.Status == -995)
+                                                    {
+                                                        Console.WriteLine("Erro ao logar...");
+                                                        Console.WriteLine(login.Response);
+                                                        Console.WriteLine("Buscando novo proxy...");
+                                                        await Task.Delay(TimeSpan.FromSeconds(25));
+                                                        try
+                                                        {
+                                                            proxy = ProxyHelper.LoadProxyFromCliquedin(Plat);
+                                                        }
+                                                        catch
+                                                        {
+                                                            Console.WriteLine("Erro ao puxar proxy...");
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("Erro ao logar...");
+                                                        Console.WriteLine(login.Response);
+                                                        await Task.Delay(TimeSpan.FromSeconds(15));
+                                                        leave = true;
+                                                    }
                                                 }
+                                            }
+                                            catch
+                                            {
+                                                Console.WriteLine("Erro ao criar instancia do bot ... (Proxy)");
+                                                Console.WriteLine("Tentando novamente...");
+                                                await Task.Delay(TimeSpan.FromSeconds(5));
                                             }
                                         }
                                     }
@@ -286,6 +324,7 @@ namespace CliquedinComentario
                                             Console.WriteLine("Rodando tarefas na conta...");
                                             Conta.conta.ContaID = Conta.conta.Username;
                                             await RodarConta(Conta);
+                                            account = false;
                                         }
                                     }
                                     catch
@@ -304,13 +343,21 @@ namespace CliquedinComentario
                             Console.WriteLine("Não foi possivel localizar conta na cliquedin...");
                             Console.WriteLine("Aguardando 1 minuto para continuar...");
                             await Task.Delay(TimeSpan.FromSeconds(60));
+                            account = false;
                         }
                     }
                     catch (Exception err)
                     {
+                        Console.Write("\n\n\n\n");
+                        Console.WriteLine("Err Message: ");
                         Console.WriteLine(err.Message);
+                        Console.WriteLine("Err StackTrace: ");
                         Console.WriteLine(err.StackTrace);
+                        Console.WriteLine("Err Source: ");
                         Console.WriteLine(err.Source);
+                        Console.WriteLine("Err Message: ");
+                        Console.WriteLine(err.Data);
+                        Console.Write("\n\n\n\n");
                         Console.WriteLine("Erro ao rodar o bot: " + err.Message);
                         await Task.Delay(TimeSpan.FromSeconds(30));
                     }
@@ -331,12 +378,11 @@ namespace CliquedinComentario
             Dictionary<string, int> waitValues = await Plat.GetMinMax();
             DeleteDate(Plat, conta.conta.Username.ToLower());
             SaveDate(Plat, conta.conta.Username.ToLower(), UserAgent, conta.insta.CookieString(), conta.insta.GetClaim());
-            return;
             try
             {
                 Random rand = new();
                 int nTask = 0;
-                while (nTask < 90)
+                while (nTask < 99)
                 {
                     Console.Clear();
                     if (nTask > 0 && nTask % 10 == 0)
@@ -704,7 +750,7 @@ namespace CliquedinComentario
                         if (i != (arr.Length - 1))
                         {
                             cookieToReturn += arr[i];
-                            if (i < (arr.Length - 1))
+                            if (i < (arr.Length - 2))
                                 cookieToReturn += ";";
                         }
                     }
@@ -714,8 +760,9 @@ namespace CliquedinComentario
                 }
                 return null;
             }
-            catch
+            catch (Exception err)
             {
+                Console.WriteLine("Erro GetDate: " + err.Message);
                 return null;
             }
         }
